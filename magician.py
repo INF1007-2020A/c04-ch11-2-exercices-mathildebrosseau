@@ -12,7 +12,7 @@ from character import *
 
 
 # TODO: Créer la classe Spell qui a les même propriétés que Weapon, mais avec un coût en MP pour l'utiliser
-class Spell:
+class Spell(Weapon):
 	"""
 	Un sort dans le jeu.
 
@@ -23,10 +23,12 @@ class Spell:
 	"""
 
 	# TODO: __init__
-	pass
+	def __init__(self, name, power, mp_cost, min_level):
+		super().__init__(name, power, min_level)
+		self.mp_cost = mp_cost
 
 # TODO: Déclarer la classe Magician qui étend la classe Character
-class Magician:
+class Magician(Character):
 	"""
 	Un utilisateur de magie dans le jeu. Un magicien peut utiliser des sorts, mais peut aussi utiliser des armes physiques. Sa capacité à utiliser des sorts dépend 
 
@@ -43,8 +45,15 @@ class Magician:
 
 	def __init__(self, name, max_hp, max_mp, attack, magic_attack, defense, level):
 		# TODO: Initialiser les attributs de Character
-		# TODO: Initialiser le `magic_attack` avec le paramètre, le `max_mp` et `mp` de la même façon que `max_hp` et `hp`, `spell` à None et `using_magic` à False.
-		pass
+		super().__init__(name, max_hp, attack, defense, level)
+
+		# TODO: Initialiser le `magic_attack` et le paramètre `max_mp` et `mp`
+		#  de la même façon que `max_hp` et `hp`, `spell` à None et `using_magic` à False.
+		self.max_mp = max_mp
+		self.magic_attack = magic_attack
+		self.spell = None
+		self.mp = max_mp
+		self.using_magic = False
 
 	@property
 	def mp(self):
@@ -58,14 +67,17 @@ class Magician:
 	#       On peut affecter None.
 	#       Si le niveau minimal d'un sort est supérieur au niveau du personnage, on lève ValueError.
 
-	# TODO: Surcharger la méthode `compute_damage` 
-	def compute_damage(self, other):
-		# Si le magicien va utiliser sa magie (`will_use_spell()`):
-			# Soustraire à son MP le coût du sort
-			# Retourner le résultat du calcul de dégâts magiques
-		# Sinon
-			# Retourner le résultat du calcul de dégâts physiques
-		pass
+	@property
+	def spell(self):
+		return self.__spell
+
+	@spell.setter
+	def spell(self, value):
+		if value is None:
+			value = Weapon.make_unarmed()
+		if value.min_level > self.level:
+			raise ValueError(Weapon)
+		self.__spell = value
 
 	def will_use_spell(self):
 		return self.using_magic and self.spell is not None and self.mp >= self.spell.mp_cost
@@ -82,5 +94,10 @@ class Magician:
 
 	def _compute_physical_damage(self, other):
 		# TODO: Calculer le dommage physique exactement de la même façon que dans `Character`
-		pass
+		return Character.compute_damage(other)
 
+	def compute_damage(self, other):
+		if self.will_use_spell():
+			return self._compute_magical_damage(other)
+		else:
+			return self._compute_physical_damage(other)
